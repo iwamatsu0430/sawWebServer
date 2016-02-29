@@ -70,7 +70,7 @@ trait FileServer extends Server {
 
   def showTextFile(is: InputStream): Unit = {
     val reader = new BufferedReader(new InputStreamReader(is))
-    @tailrec
+    @tailrec // TODO: 一文字ずつで遅いので一行ずつに変更
     def readAll(acc: String = ""): String = {
       reader.read match {
         case c if c < 0 => acc

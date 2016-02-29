@@ -32,7 +32,10 @@ case object Request {
     reader.read match {
       case c if c < 0 => acc
       case c => acc + c.asInstanceOf[Char].toString match {
-        case str if str.endsWith("\r\n\r\n") => str
+        case str if str.endsWith("\r\n\r\n") => {
+          println(str)
+          str
+        }
         case str => readAll(str, reader)
       }
     }
