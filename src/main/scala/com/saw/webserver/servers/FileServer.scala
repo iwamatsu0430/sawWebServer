@@ -15,7 +15,7 @@ import com.saw.webserver.utils.opt.TryOpt._
 trait FileServer extends Server {
 
   def run: Unit = {
-    val io = (findFile(request.path) { file =>
+    val io = (findFile(request.header.path) { file =>
       showFile(file)
     } leftMap { error =>
       show404

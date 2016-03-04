@@ -18,9 +18,9 @@ case class ResponseTask(socketStore: SocketStore)(implicit logger: Logger) {
   def loop: LoopingMyFuture[Unit] = {
     LoopingMyFuture.create(() => {
       socketStore.exec { socket =>
-        usingReaderWriter(socket) { (reader, os) =>
+        usingReaderWriter(socket) { (is, os) =>
           for {
-            request <- Request(socket, reader)
+            request <- Request(socket, is)
             server <- Server(request, os).right
           } yield {
             ()
@@ -30,8 +30,7 @@ case class ResponseTask(socketStore: SocketStore)(implicit logger: Logger) {
     }, 10)
   }
 
-  def usingReaderWriter(socket: Socket)(f: (BufferedReader, OutputStream) => Unit): Unit = {
-    val reader = new BufferedReader(new InputStreamReader(socket.getInputStream, StandardCharsets.UTF_8))
-    f.apply(reader, socket.getOutputStream)
+  def usingReaderWriter(socket: Socket)(f: (InputStream, OutputStream) => Unit): Unit = {
+    f.apply(socket.getInputStream, socket.getOutputStream)
   }
 }
