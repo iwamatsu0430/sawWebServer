@@ -10,9 +10,10 @@ import scalaz._, Scalaz._, effect._, IO._
 import com.saw.webserver.models.http._
 import com.saw.webserver.models.http.HttpStatus._
 import com.saw.webserver.models.Errors
+import com.saw.webserver.utils.ByteUtils
 import com.saw.webserver.utils.opt.TryOpt._
 
-trait FileServer extends Server {
+trait FileServer extends Server with ByteUtils {
 
   def run: Unit = {
     val io = (findFile(request.header.path) { file =>
@@ -30,7 +31,7 @@ trait FileServer extends Server {
   }
 
   def findFile(path: String)(f: File => IO[Unit]): Errors \/ IO[Unit]  = {
-    new File(s"public/$path") match {
+    new File(s"public/$path") match { // TODO: 設定ファイル化
       case file if file.isDirectory => findFile(s"${path}index.html")(f) // TODO: 設定ファイル化
       case file if file.exists => f.apply(file).right
       case _ => Errors(s"$path Not Found").left
@@ -49,51 +50,14 @@ trait FileServer extends Server {
         contentType
       }
       _ <- IO {
+        val is = new FileInputStream(file) // NOTE: ファイルの存在は確認済み
         Try {
-          val is = new FileInputStream(file)
-          ContentType.textValues.contains(contentType) match {
-            case true => {
-              showTextFile(is)
-              is
-            }
-            case _ => {
-              showBinaryFile(is)
-              is
-            }
-          }
-        } foreach { is =>
+          writeBinaryBody(readFromInputStream(is))
+        } andFinally {
           is.close
         }
       }
     } yield ()
-  }
-
-  def showTextFile(is: InputStream): Unit = {
-    val reader = new BufferedReader(new InputStreamReader(is))
-    @tailrec // TODO: 一文字ずつで遅いので一行ずつに変更
-    def readAll(acc: String = ""): String = {
-      reader.read match {
-        case c if c < 0 => acc
-        case c => readAll(acc + c.asInstanceOf[Char].toString)
-      }
-    }
-    val text = readAll()
-    writeTextBody(text)
-  }
-
-  def showBinaryFile(is: InputStream): Unit = {
-    val buffer = 1024 // TODO: 設定ファイル化
-    @tailrec
-    def readAll(accBytes: Array[Byte] = Array()): Array[Byte] = {
-      var bytes = new Array[Byte](buffer)
-      is.read(bytes, 0, buffer) match {
-        case length if length < 0 => accBytes
-        case _ => {
-          readAll(accBytes ++: bytes)
-        }
-      }
-    }
-    writeBinaryBody(readAll())
   }
 
   def show404: IO[Unit] = {

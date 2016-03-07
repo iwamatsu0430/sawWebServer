@@ -9,6 +9,12 @@ import com.saw.webserver.utils.future.MyFuture
 case class ReadTask() {
 
   def await: String = MyFuture {
-    StdIn.readLine
+    def inner: String = {
+      StdIn.readLine match {
+        case result if result == null => result
+        case result => inner
+      }
+    }
+    inner
   }.await
 }

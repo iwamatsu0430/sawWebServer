@@ -22,9 +22,12 @@ object ContentType extends SealedEnumCompanion[ContentType, String] {
   case object Js extends ContentType("application/javascript")
   case object Json extends ContentType("application/json")
 
-  def values: Seq[ContentType] = Seq(Plain, Html, Css, Jpeg, Json)
+  // Multipart/form-data
+  case object MPFD extends ContentType("multipart/form-data")
+
+  def values: Seq[ContentType] = Seq(Plain, Html, Css, Jpeg, Png, Gif, Js, Json, MPFD)
   def textValues: Seq[ContentType] = Seq(Plain, Html, Css, Js, Json)
-  def binaryValues: Seq[ContentType] = Seq(Jpeg, Png, Gif)
+  def binaryValues: Seq[ContentType] = Seq(Jpeg, Png, Gif, MPFD)
 
   def apply(code: String): ContentType = valueOfOrError(code)
 

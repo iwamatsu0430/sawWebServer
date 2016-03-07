@@ -9,17 +9,25 @@ trait ByteUtils {
 
   val buffer = 1024 // TODO: 設定ファイル化
 
-  def readFromInputStream(is: InputStream)(f: (Array[Byte], Array[Byte]) => Any \/ Unit): Array[Byte] = {
+  def readFromInputStream(is: InputStream): Array[Byte] = {
     @tailrec
     def readAll(accBytes: Array[Byte] = Array()): Array[Byte] = {
-      var bytes = new Array[Byte](buffer)
-      is.read(bytes, 0, buffer)
-      val input = bytes.take(bytes.lastIndexWhere(_ != 0) + 1)
-      f.apply(accBytes, input) match {
-        case -\/(_) => readAll(accBytes ++: input)
-        case \/-(_) => accBytes ++: input
+      if (is.available > 0) {
+        var bytes = new Array[Byte](buffer)
+        is.read(bytes, 0, buffer)
+        readAll(accBytes ++: bytes)
+      } else {
+        accBytes
       }
     }
     readAll()
+  }
+
+  def bytesToString(input: Array[Byte], encode: String = "UTF-8"): String = { // TODO: 設定ファイル化
+    new String(input, encode)
+  }
+
+  def stringToBytes(input: String, encode: String = "UTF-8"): Array[Byte] = { // TODO: 設定ファイル化
+    input.getBytes(encode)
   }
 }

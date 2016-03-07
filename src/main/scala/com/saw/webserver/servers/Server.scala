@@ -8,6 +8,7 @@ import scala.util.{ Failure, Success, Try }
 import com.saw.webserver.models.http.{ Body, Header, HttpStatus }
 import com.saw.webserver.models.Request
 import com.saw.webserver.utils.logger.Logger
+import com.saw.webserver.utils._
 
 object Server {
   def apply(inputRequest: Request, inputOs: OutputStream)(implicit inputLogger: Logger): Server = {
@@ -19,7 +20,7 @@ object Server {
   }
 }
 
-trait Server {
+trait Server extends ByteUtils {
 
   val request: Request
 
@@ -35,8 +36,8 @@ trait Server {
   }
 
   def writeText(str: String): Unit = {
-    val bytes = str.getBytes("UTF-8")
-    os.write(bytes, 0, bytes.length)
+    val bytes = stringToBytes(str)
+    os.write(bytes)
   }
 
   def writeNewLine: Unit = {
