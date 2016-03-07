@@ -9,7 +9,7 @@ object SawWebServer {
 
   def main(args: Array[String]): Unit = {
     LoggerTask().loop.foreach { implicit logger =>
-      ListenerTask.createServerSocket(8082) { listener =>
+      ListenerTask.createServerSocket(8081) { listener =>
         // for {
         //   socketStore <- ListenerTask(listener).loop
         //   _ <- ResponseTask(socketStore).loop
